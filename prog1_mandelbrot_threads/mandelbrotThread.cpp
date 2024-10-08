@@ -56,6 +56,8 @@ void workerThreadStart(WorkerArgs * const args) {
     // let's just make it very much like CUDA
     int height_d = (args->height) / (args->numThreads);
     int startRow = (args->threadId) * height_d;
+    if (args->threadId == args->numThreads - 1)
+      height_d = (args->height) - height_d * (args->numThreads - 1);
     mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width,
                      args->height,
                      startRow, // start row,
