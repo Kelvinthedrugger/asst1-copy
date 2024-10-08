@@ -22,6 +22,11 @@ extern void mandelbrotSerial(
     int maxIterations,
     int output[]);
 
+double minn(double a, double b) {
+  if (a >= b)
+    return b;
+  return a;
+}
 
 //
 // workerThreadStart --
@@ -37,6 +42,9 @@ void workerThreadStart(WorkerArgs * const args) {
 
     // printf("Hello world from thread %d\n", args->threadId);
 
+    // 1.3 time the thing
+    double t_expense = 1e30;
+    double startTime = CycleTimer::currentSeconds();
     // use threadId to distinguish what to do -> call mandelbrotSerial()
     // -> done
 
@@ -66,6 +74,9 @@ void workerThreadStart(WorkerArgs * const args) {
                      args->output // can i just do this?
     );
     // requires sync because of args->output?
+    double endTime = CycleTimer::currentSeconds();
+    t_expense = minn(t_expense, endTime - startTime);
+    printf("[time for thread creation]:\t\t[%.3f] ms\n", t_expense * 1000);
 }
 
 //
