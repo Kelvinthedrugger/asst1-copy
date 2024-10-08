@@ -36,6 +36,22 @@ void workerThreadStart(WorkerArgs * const args) {
     // half of the image and thread 1 could compute the bottom half.
 
     printf("Hello world from thread %d\n", args->threadId);
+
+    // use threadId to distinguish what to do -> call mandelbrotSerial()
+    // -> done
+
+    // depending on threadId:
+    //  - start row
+    //  - total row
+    // the rest remains
+    int startRow = args->threadId ? 0 : (args->height / 2);
+    mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width,
+                     args->height, startRow, /*start row,*/
+                     args->height / 2,       /*total rows*/
+                     args->maxIterations,
+                     args->output // can i just do this?
+    );
+    // requires sync because of args->output?
 }
 
 //
@@ -62,7 +78,7 @@ void mandelbrotThread(
     WorkerArgs args[MAX_THREADS];
 
     for (int i=0; i<numThreads; i++) {
-      
+
         // TODO FOR CS149 STUDENTS: You may or may not wish to modify
         // the per-thread arguments here.  The code below copies the
         // same arguments for each thread
@@ -75,7 +91,7 @@ void mandelbrotThread(
         args[i].maxIterations = maxIterations;
         args[i].numThreads = numThreads;
         args[i].output = output;
-      
+
         args[i].threadId = i;
     }
 
@@ -85,7 +101,7 @@ void mandelbrotThread(
     for (int i=1; i<numThreads; i++) {
         workers[i] = std::thread(workerThreadStart, &args[i]);
     }
-    
+
     workerThreadStart(&args[0]);
 
     // join worker threads
