@@ -35,7 +35,7 @@ void workerThreadStart(WorkerArgs * const args) {
     // program that uses two threads, thread 0 could compute the top
     // half of the image and thread 1 could compute the bottom half.
 
-    printf("Hello world from thread %d\n", args->threadId);
+    // printf("Hello world from thread %d\n", args->threadId);
 
     // use threadId to distinguish what to do -> call mandelbrotSerial()
     // -> done
@@ -44,10 +44,22 @@ void workerThreadStart(WorkerArgs * const args) {
     //  - start row
     //  - total row
     // the rest remains
-    int startRow = args->threadId ? 0 : (args->height / 2);
+    // 1.1: uses 2 processors
+    /*int startRow = args->threadId ? 0 : (args->height / 2);
     mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width,
-                     args->height, startRow, /*start row,*/
-                     args->height / 2,       /*total rows*/
+                     args->height, startRow, // start row,
+                     args->height / 2,       // total rows
+                     args->maxIterations,
+                     args->output // can i just do this?
+    );*/
+    // 1.2: uses 2~8 threads (./mandelbrot -t 8)
+    // let's just make it very much like CUDA
+    int height_d = (args->height) / (args->numThreads);
+    int startRow = (args->threadId) * height_d;
+    mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width,
+                     args->height,
+                     startRow, // start row,
+                     height_d, // total rows
                      args->maxIterations,
                      args->output // can i just do this?
     );
