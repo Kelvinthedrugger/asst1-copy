@@ -14,19 +14,13 @@ typedef struct {
     int numThreads;
 } WorkerArgs;
 
+extern void mandelbrotSerial(float x0, float y0, float x1, float y1, int width,
+                             int height, int startRow, int numRows,
+                             int maxIterations, int output[]);
 
-extern void mandelbrotSerial(
-    float x0, float y0, float x1, float y1,
-    int width, int height,
-    int startRow, int numRows,
-    int maxIterations,
-    int output[]);
-
-double minn(double a, double b) {
-  if (a >= b)
-    return b;
-  return a;
-}
+extern void mandelbrotSerial1(float x0, float y0, float x1, float y1, int width,
+                              int height, int startRow, int stepsize,
+                              int maxIterations, int output[]);
 
 //
 // workerThreadStart --
@@ -43,7 +37,6 @@ void workerThreadStart(WorkerArgs * const args) {
     // printf("Hello world from thread %d\n", args->threadId);
 
     // 1.3 time the thing
-    double t_expense = 1e30;
     double startTime = CycleTimer::currentSeconds();
     // use threadId to distinguish what to do -> call mandelbrotSerial()
     // -> done
@@ -62,7 +55,7 @@ void workerThreadStart(WorkerArgs * const args) {
     );*/
     // 1.2: uses 2~8 threads (./mandelbrot -t 8)
     // let's just make it very much like CUDA
-    int height_d = (args->height) / (args->numThreads);
+    /*int height_d = (args->height) / (args->numThreads);
     int startRow = (args->threadId) * height_d;
     if (args->threadId == args->numThreads - 1)
       height_d = (args->height) - height_d * (args->numThreads - 1);
@@ -72,11 +65,20 @@ void workerThreadStart(WorkerArgs * const args) {
                      height_d, // total rows
                      args->maxIterations,
                      args->output // can i just do this?
+    );*/
+    // 1.4: distribute the workload evenly to gain performance
+    mandelbrotSerial1(args->x0, args->y0, args->x1, args->y1, args->width,
+                      args->height,
+                      args->threadId,   // start row,
+                      args->numThreads, // total rows
+                      args->maxIterations,
+                      args->output // can i just do this?
     );
     // requires sync because of args->output?
     double endTime = CycleTimer::currentSeconds();
-    t_expense = minn(t_expense, endTime - startTime);
-    printf("[time for thread creation]:\t\t[%.3f] ms\n", t_expense * 1000);
+    double t_expense = endTime - startTime;
+    printf("[time for thread %d creation]:\t\t[%.3f] ms\n", args->threadId,
+           t_expense * 1000);
 }
 
 //
