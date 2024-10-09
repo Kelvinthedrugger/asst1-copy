@@ -60,13 +60,13 @@ int main(int argc, char * argv[]) {
   float* gold = new float[N+VECTOR_WIDTH];
   initValue(values, exponents, output, gold, N);
 
-  clampedExpSerial(values, exponents, gold, N);
-  clampedExpVector(values, exponents, output, N);
+  // clampedExpSerial(values, exponents, gold, N);
+  // clampedExpVector(values, exponents, output, N);
 
-  //absSerial(values, gold, N);
-  //absVector(values, output, N);
+  absSerial(values, gold, N);
+  absVector(values, output, N);
 
-  printf("\e[1;31mCLAMPED EXPONENT\e[0m (required) \n");
+  // printf("\e[1;31mCLAMPED EXPONENT\e[0m (required) \n");
   bool clampedCorrect = verifyResult(values, exponents, output, gold, N);
   if (printLog) CS149Logger.printLog();
   CS149Logger.printStats();
@@ -78,6 +78,7 @@ int main(int argc, char * argv[]) {
     printf("Passed!!!\n");
   }
 
+  /*
   printf("\n\e[1;31mARRAY SUM\e[0m (bonus) \n");
   if (N % VECTOR_WIDTH == 0) {
     float sumGold = arraySumSerial(values, N);
@@ -91,8 +92,10 @@ int main(int argc, char * argv[]) {
       printf("Passed!!!\n");
     }
   } else {
-    printf("Must have N %% VECTOR_WIDTH == 0 for this problem (VECTOR_WIDTH is %d)\n", VECTOR_WIDTH);
+    printf("Must have N %% VECTOR_WIDTH == 0 for this problem (VECTOR_WIDTH is
+  %d)\n", VECTOR_WIDTH);
   }
+  */
 
   delete [] values;
   delete [] exponents;
@@ -189,7 +192,11 @@ void absVector(float* values, float* output, int N) {
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
 
     // All ones
-    maskAll = _cs149_init_ones();
+    // maskAll = _cs149_init_ones();
+    if (N - i < VECTOR_WIDTH)
+      maskAll = _cs149_init_ones(N - i);
+    else
+      maskAll = _cs149_init_ones();
 
     // All zeros
     maskIsNegative = _cs149_init_ones(0);
@@ -249,7 +256,7 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   // Your solution should work for any value of
   // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
   //
-  
+
 }
 
 // returns the sum of all elements in values
@@ -266,11 +273,11 @@ float arraySumSerial(float* values, int N) {
 // You can assume N is a multiple of VECTOR_WIDTH
 // You can assume VECTOR_WIDTH is a power of 2
 float arraySumVector(float* values, int N) {
-  
+
   //
   // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
   //
-  
+
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
 
   }
