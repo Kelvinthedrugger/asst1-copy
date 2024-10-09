@@ -60,13 +60,13 @@ int main(int argc, char * argv[]) {
   float* gold = new float[N+VECTOR_WIDTH];
   initValue(values, exponents, output, gold, N);
 
-  // clampedExpSerial(values, exponents, gold, N);
-  // clampedExpVector(values, exponents, output, N);
+  clampedExpSerial(values, exponents, gold, N);
+  clampedExpVector(values, exponents, output, N);
 
-  absSerial(values, gold, N);
-  absVector(values, output, N);
+  // absSerial(values, gold, N);
+  // absVector(values, output, N);
 
-  // printf("\e[1;31mCLAMPED EXPONENT\e[0m (required) \n");
+  printf("\e[1;31mCLAMPED EXPONENT\e[0m (required) \n");
   bool clampedCorrect = verifyResult(values, exponents, output, gold, N);
   if (printLog) CS149Logger.printLog();
   CS149Logger.printStats();
@@ -256,7 +256,30 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   // Your solution should work for any value of
   // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
   //
+  __cs149_vec_float val;
+  __cs149_vec_int exp;
+  __cs149_vec_float result;
+  __cs149_vec_float one = _cs149_vset_float(1.f);
+  __cs149_vec_float maxval = _cs149_vset_float(9.999999f);
+  __cs149_mask maskAll, isZero, isNotZero;
 
+  for (int i = 0; i < N; i += VECTOR_WIDTH) {
+    if (N - i < VECTOR_WIDTH)
+      maskAll = _cs149_init_ones(N - i);
+    else
+      maskAll = _cs149_init_ones();
+
+    _cs149_vload_float(val, values + i, maskAll);
+    _cs149_vload_int(exp, exponents + i, maskAll);
+    // if exp[i] < 1 (== 0)
+    _cs149_vlt_float(isZero, val, one, maskAll);
+    // out[i] = 1, val otherwise (will this compiled)
+    _cs149_vset_float(val, 1.f, isZero);
+    // reverse isZero (actually it's trivial since 1**power == 1
+    // we do this to avoid weird bug & confusion
+    isNotZero = _cs149_mask_not(isZero);
+    // power up
+  }
 }
 
 // returns the sum of all elements in values
