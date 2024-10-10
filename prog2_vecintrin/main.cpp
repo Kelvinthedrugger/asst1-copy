@@ -354,16 +354,21 @@ float arraySumVector(float* values, int N) {
     _cs149_vload_float(val, values + i, maskAll);
 
     // 0,1,2,3 -> 0+1, 0+1, 2+3, 2+3
-    _cs149_hadd_float(val, maskAll);
+    //_cs149_hadd_float(val, maskAll);
     // need to work with any VECTOR_WIDTH (power of 2)
     // for width = 8, after 3 (log(8)) interleaving, the array
     //  will be shuffled back to the original order
-    cntsum = VECTOR_WIDTH >> 1;
+    // for width, we need log(width) hadd & log(width)-1 shuffle
+    // will the last N-idx elements be the edge case (buggy)?
+    cntsum = VECTOR_WIDTH;
     while (cntsum > 0) {
-      // a,b,c,d -> a,c,b,d
-      _cs149_interleave_float(val, maskAll);
       // a,c,b,d -> a+c, a+c, b+d, b+d
       _cs149_hadd_float(val, maskAll);
+      // a,b,c,d -> a,c,b,d
+      // the last interleaving is redundant
+      // but it's fine, since we'll already
+      //  be exiting from the loop
+      _cs149_interleave_float(val, maskAll);
       cntsum = cntsum >> 1;
     }
     // extract any element of the partial sum (they're all the same)
