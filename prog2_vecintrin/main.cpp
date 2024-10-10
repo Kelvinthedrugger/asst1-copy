@@ -341,10 +341,36 @@ float arraySumVector(float* values, int N) {
   // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
   //
 
+  // sum up per lane (partial)-> accumulate partial -> done
+  float ret = 0.0f;
+  __cs149_vec_float val;
+  int cntsum;
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
+    if (N - i < VECTOR_WIDTH)
+      maskAll = _cs149_init_ones(N - i);
+    else
+      maskAll = _cs149_init_ones();
 
+    _cs149_vload_float(val, values + i, maskAll);
+
+    // 0,1,2,3 -> 0+1, 0+1, 2+3, 2+3
+    _cs149_hadd_float(val, maskAll);
+    // need to work with any VECTOR_WIDTH (power of 2)
+    // for width = 8, after 3 (log(8)) interleaving, the array
+    //  will be shuffled back to the original order
+    cntsum = VECTOR_WIDTH >> 1;
+    while (cntsum > 0) {
+      // a,b,c,d -> a,c,b,d
+      _cs149_interleave_float(val, maskAll);
+      // a,c,b,d -> a+c, a+c, b+d, b+d
+      _cs149_hadd_float(val, maskAll);
+      cntsum = cntsum >> 1;
+    }
+    // extract any element of the partial sum (they're all the same)
+    // (btw, seems like 'vec' can be access with [] bracket notation)
+    ret += val[0];
   }
 
-  return 0.0;
+  return ret;
 }
 
