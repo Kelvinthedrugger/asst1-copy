@@ -67,14 +67,26 @@ void workerThreadStart(WorkerArgs * const args) {
                      args->output // can i just do this?
     );*/
     // 1.4: distribute the workload evenly to gain performance
+    /*
     mandelbrotSerial1(args->x0, args->y0, args->x1, args->y1, args->width,
                       args->height,
                       args->threadId,   // start row,
                       args->numThreads, // total rows
                       args->maxIterations,
                       args->output // can i just do this?
-    );
-    // requires sync because of args->output?
+    );*/
+    // 1.4
+    // distribute the workload evenly without creating a new function
+    int startRow;
+    for (startRow = args->threadId; startRow < *(int *)(&args->height);
+         startRow += args->numThreads) {
+      mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width,
+                       args->height, startRow, 1, args->maxIterations,
+                       args->output);
+    }
+
+    // requires sync because of args->output?: no because we're writing to
+    //  different address ?
     double endTime = CycleTimer::currentSeconds();
     double t_expense = endTime - startTime;
     printf("[time for thread %d creation]:\t\t[%.3f] ms\n", args->threadId,
