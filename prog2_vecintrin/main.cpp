@@ -259,9 +259,13 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   __cs149_vec_float val;
   __cs149_vec_int exp;
   __cs149_vec_float result;
-  __cs149_vec_float one = _cs149_vset_float(1.f);
+  __cs149_vec_int one = _cs149_vset_int(1);
+  __cs149_vec_int zero = _cs149_vset_int(0);
   __cs149_vec_float maxval = _cs149_vset_float(9.999999f);
-  __cs149_mask maskAll, isZero, isNotZero;
+  __cs149_vec_float tmp; // for val * 2
+  __cs149_vec_int two = _cs149_vset_int(2); // for exp / 2
+  __cs149_mask maskAll, isZero, isNotZero, maskMul;
+  int done_mul;
 
   for (int i = 0; i < N; i += VECTOR_WIDTH) {
     if (N - i < VECTOR_WIDTH)
@@ -271,14 +275,50 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
 
     _cs149_vload_float(val, values + i, maskAll);
     _cs149_vload_int(exp, exponents + i, maskAll);
-    // if exp[i] < 1 (== 0)
-    _cs149_vlt_float(isZero, val, one, maskAll);
+    // if exp[i] == 0
+    _cs149_veq_int(isZero, exp, zero, maskAll);
     // out[i] = 1, val otherwise (will this compiled)
     _cs149_vset_float(val, 1.f, isZero);
-    // reverse isZero (actually it's trivial since 1**power == 1
-    // we do this to avoid weird bug & confusion
-    isNotZero = _cs149_mask_not(isZero);
     // power up
+    // mark the element to accumulate value
+    // maskMul: exp[i] > 0
+    maskMul = _cs149_mask_not(isZero);
+    // done_mul: 0: stop, >1, otherwise
+    done_mul = _cs149_cntbits(maskMul);
+    // init tmp: copy val to tmp
+    // (copy only the exp[i] > 0 ones)
+    _cs149_vmove_float(tmp, val, maskMul);
+
+    // do the easier one first
+    while (done_mul > 0) {
+      // val *= tmp
+      _cs149_vmult_float(val, val, tmp, maskMul);
+      // exp -= 1
+      _cs149_vsub_int(exp, exp, one, maskMul);
+      // exp[i] > 0
+      _cs149_vgt_int(maskMul, exp, zero, maskMul);
+      done_mul = _cs149_cntbits(maskMul);
+    }
+
+    // if it's > 9.999999f: set to bound
+    _cs149_vgt_float(maskAll, val, maxval, maskMul);
+    _cs149_vmove_float(val, maxval, maskAll);
+    // write out result
+    _cs149_vstore_int(output + i, val, maskAll);
+    /*while (done_mul > 0) {
+      // tmp = tmp * tmp
+      _cs149_vmult_float(tmp, tmp, tmp, maskMul);
+      // extract LSB of exp
+      // if LSB of exp[i] == 1 -> update val
+      _cs149_veq_int(isOne, exp, one, maskAll);
+      // update val if exp[i] == 1
+      _cs149_vmove_float(val, tmp, isOne);
+      // exp/2
+      _cs149_vdiv_float(exp, exp, two, maskAll);
+      // maskMul: exp > 0
+      _cs149_vgt_int(maskMul, exp, zero, maskAll);
+      done_mul = _cs149_cntbits(maskMul);
+    }*/
   }
 }
 
