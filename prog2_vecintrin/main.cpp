@@ -301,10 +301,12 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
     }
 
     // if it's > 9.999999f: set to bound
+    // is this buggy, since we're running into errors
+    // , where all outputs are 9.999999f
     _cs149_vgt_float(maskAll, val, maxval, maskMul);
     _cs149_vmove_float(val, maxval, maskAll);
     // write out result
-    _cs149_vstore_int(output + i, val, maskAll);
+    _cs149_vstore_float(output + i, val, maskAll);
     /*while (done_mul > 0) {
       // tmp = tmp * tmp
       _cs149_vmult_float(tmp, tmp, tmp, maskMul);
@@ -344,6 +346,7 @@ float arraySumVector(float* values, int N) {
   // sum up per lane (partial)-> accumulate partial -> done
   float ret = 0.0f;
   __cs149_vec_float val;
+  __cs149_mask maskAll;
   int cntsum;
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
     if (N - i < VECTOR_WIDTH)
@@ -363,17 +366,17 @@ float arraySumVector(float* values, int N) {
     cntsum = VECTOR_WIDTH;
     while (cntsum > 0) {
       // a,c,b,d -> a+c, a+c, b+d, b+d
-      _cs149_hadd_float(val, maskAll);
+      _cs149_hadd_float(val, val);
       // a,b,c,d -> a,c,b,d
       // the last interleaving is redundant
       // but it's fine, since we'll already
       //  be exiting from the loop
-      _cs149_interleave_float(val, maskAll);
+      _cs149_interleave_float(val, val);
       cntsum = cntsum >> 1;
     }
     // extract any element of the partial sum (they're all the same)
     // (btw, seems like 'vec' can be access with [] bracket notation)
-    ret += val[0];
+    ret += val.value[0]; // is this cheating?
   }
 
   return ret;
