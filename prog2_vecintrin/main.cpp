@@ -285,7 +285,7 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
     // done_mul: 0: stop, >1, otherwise
     done_mul = _cs149_cntbits(maskMul);
     // init tmp: copy val to tmp
-    // (copy only the exp[i] > 0 ones)
+    // (copy only the exp[i] > 1 ones)
     _cs149_vmove_float(tmp, val, maskMul);
 
     while (done_mul > 0) {
