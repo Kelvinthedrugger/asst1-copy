@@ -362,6 +362,28 @@ float arraySumVector(float* values, int N) {
     // (btw, seems like 'vec' can be access with [] bracket notation)
     ret += val.value[0]; // is this cheating?
   }
+  /*
+  // a better solution:
+  https://github.com/PKUFlyingPig/asst1/blob/7ffe9180223900f6a4eecdab665377146ad2c43e/prog2_vecintrin/main.cpp#L297
+  __cs149_mask maskAll = _cs149_init_ones(); // mask all
+  __cs149_vec_float sum = _cs149_vset_float(0.f);
+  __cs149_vec_float temp;
+  1. sum up all chunks of elements to the first chunk
+  for (int i=0; i<N; i+=VECTOR_WIDTH) {
+   _cs149_vload_float(temp, values + i, maskAll);
+   _cs149_vadd_float(sum, sum, temp, maskAll);
+  }
+  2. do the 'hadd' 'interleave'
+  int i = VECTOR_WIDTH;
+  while (i /= 2) {
+    _cs149_hadd_float(sum, sum);
+    _cs149_interleave_float(sum, sum);
+  }
+  3. write back the result
+  float output[VECTOR_WIDTH];
+  _cs149_vstore_float(output, sum, maskAll);
+  return output[0];
+  */
 
   return ret;
 }
