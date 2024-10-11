@@ -78,7 +78,6 @@ int main(int argc, char * argv[]) {
     printf("Passed!!!\n");
   }
 
-  /*
   printf("\n\e[1;31mARRAY SUM\e[0m (bonus) \n");
   if (N % VECTOR_WIDTH == 0) {
     float sumGold = arraySumSerial(values, N);
@@ -92,10 +91,10 @@ int main(int argc, char * argv[]) {
       printf("Passed!!!\n");
     }
   } else {
-    printf("Must have N %% VECTOR_WIDTH == 0 for this problem (VECTOR_WIDTH is
-  %d)\n", VECTOR_WIDTH);
+    printf("Must have N %% VECTOR_WIDTH == 0 for this problem (VECTOR_WIDTH "
+           "is%d)\n",
+           VECTOR_WIDTH);
   }
-  */
 
   delete [] values;
   delete [] exponents;
@@ -348,7 +347,7 @@ float arraySumVector(float* values, int N) {
     //  will be shuffled back to the original order
     // for width, we need log(width) hadd & log(width)-1 shuffle
     // will the last N-idx elements be the edge case (buggy)?
-    cntsum = VECTOR_WIDTH;
+    cntsum = VECTOR_WIDTH >> 1;
     while (cntsum > 0) {
       // a,c,b,d -> a+c, a+c, b+d, b+d
       _cs149_hadd_float(val, val);
