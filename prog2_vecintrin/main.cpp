@@ -281,46 +281,31 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
     _cs149_vset_float(val, 1.f, isZero);
     // power up
     // mark the element to accumulate value
-    // maskMul: exp[i] > 0
-    maskMul = _cs149_mask_not(isZero);
+    // maskMul: exp[i] > 1 ( > 1 is the ones that needs multiplication)
+    _cs149_vgt_int(maskMul, exp, one, maskAll);
     // done_mul: 0: stop, >1, otherwise
     done_mul = _cs149_cntbits(maskMul);
     // init tmp: copy val to tmp
     // (copy only the exp[i] > 0 ones)
     _cs149_vmove_float(tmp, val, maskMul);
 
-    // do the easier one first
     while (done_mul > 0) {
       // val *= tmp
       _cs149_vmult_float(val, val, tmp, maskMul);
       // exp -= 1
       _cs149_vsub_int(exp, exp, one, maskMul);
-      // exp[i] > 0
-      _cs149_vgt_int(maskMul, exp, zero, maskMul);
+      // exp[i] > 1
+      _cs149_vgt_int(maskMul, exp, one, maskMul);
       done_mul = _cs149_cntbits(maskMul);
     }
 
     // if it's > 9.999999f: set to bound
     // is this buggy, since we're running into errors
     // , where all outputs are 9.999999f
-    _cs149_vgt_float(maskAll, val, maxval, maskMul);
-    _cs149_vmove_float(val, maxval, maskAll);
+    _cs149_vgt_float(maskMul, val, maxval, maskAll);
+    _cs149_vmove_float(val, maxval, maskMul);
     // write out result
     _cs149_vstore_float(output + i, val, maskAll);
-    /*while (done_mul > 0) {
-      // tmp = tmp * tmp
-      _cs149_vmult_float(tmp, tmp, tmp, maskMul);
-      // extract LSB of exp
-      // if LSB of exp[i] == 1 -> update val
-      _cs149_veq_int(isOne, exp, one, maskAll);
-      // update val if exp[i] == 1
-      _cs149_vmove_float(val, tmp, isOne);
-      // exp/2
-      _cs149_vdiv_float(exp, exp, two, maskAll);
-      // maskMul: exp > 0
-      _cs149_vgt_int(maskMul, exp, zero, maskAll);
-      done_mul = _cs149_cntbits(maskMul);
-    }*/
   }
 }
 
