@@ -32,9 +32,12 @@ int main() {
         // TODO: CS149 students.  Attempt to change the values in the
         // array here to meet the instructions in the handout: we want
         // to you generate best and worse-case speedups
-        
+
         // starter code populates array with random input values
         values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+        // values[i] = 1.f;
+        //  values[i] = 3.f;
+        //  values[i] = 0.f;
     }
 
     // generate a gold version to check results
@@ -92,8 +95,8 @@ int main() {
 
     verifyResult(N, output, gold);
 
-    printf("\t\t\t\t(%.2fx speedup from ISPC)\n", minSerial/minISPC);
-    printf("\t\t\t\t(%.2fx speedup from task ISPC)\n", minSerial/minTaskISPC);
+    printf("\t\t\t\t(%.2fx speedup from ISPC)\n", minSerial / minISPC);
+    printf("\t\t\t\t(%.2fx speedup from task ISPC)\n", minSerial / minTaskISPC);
 
     delete [] values;
     delete [] output;
