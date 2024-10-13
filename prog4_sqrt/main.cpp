@@ -20,24 +20,23 @@ static void verifyResult(int N, float* result, float* gold) {
 
 int main() {
 
-    const unsigned int N = 20 * 1000 * 1000;
-    const float initialGuess = 1.0f;
+  const unsigned int N = 20 * 1000; //*1000; // cut down N to run faster
+  const float initialGuess = 1.0f;
 
-    float* values = new float[N];
-    float* output = new float[N];
-    float* gold = new float[N];
+  float *values = new float[N];
+  float *output = new float[N];
+  float *gold = new float[N];
 
-    for (unsigned int i=0; i<N; i++)
-    {
-        // TODO: CS149 students.  Attempt to change the values in the
-        // array here to meet the instructions in the handout: we want
-        // to you generate best and worse-case speedups
+  for (unsigned int i = 0; i < N; i++) {
+    // TODO: CS149 students.  Attempt to change the values in the
+    // array here to meet the instructions in the handout: we want
+    // to you generate best and worse-case speedups
 
-        // starter code populates array with random input values
-        values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
-        // values[i] = 1.f;
-        //  values[i] = 3.f;
-        //  values[i] = 0.f;
+    // starter code populates array with random input values
+    // values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+    values[i] = 2.998f; // 20.94x
+    // values[i] = 1.f; // 4. x
+    // values[i] = 0.001f; // 11.66x
     }
 
     // generate a gold version to check results
