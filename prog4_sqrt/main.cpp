@@ -20,7 +20,7 @@ static void verifyResult(int N, float* result, float* gold) {
 
 int main() {
 
-  const unsigned int N = 20 * 1000; //*1000; // cut down N to run faster
+  const unsigned int N = 20 * 1000 * 1000; // cut down N to run faster
   const float initialGuess = 1.0f;
 
   float *values = new float[N];
@@ -33,11 +33,14 @@ int main() {
     // to you generate best and worse-case speedups
 
     // starter code populates array with random input values
-    // values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
-    values[i] = 2.998f; // 20.94x
+    // ...; speedup when N=2e4
+    values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX; //
+    // 11x
+    // values[i] = 2.998f; // 20.94x
+    // values[i] = 2.999f; // 28.44x
     // values[i] = 1.f; // 4. x
-    // values[i] = 0.001f; // 11.66x
-    }
+    // values[i] = 0.001f; // 11.66x; 22x
+  }
 
     // generate a gold version to check results
     for (unsigned int i=0; i<N; i++)
