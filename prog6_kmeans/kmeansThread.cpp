@@ -64,11 +64,67 @@ double dist(double *x, double *y, int nDim) {
 /**
  * Assigns each data point to its "closest" cluster centroid.
  */
+
+typedef struct {
+  WorkerArgs *args;
+  int worker_start;
+  int worker_finish;
+} WorkerArgs_w;
+
+// only allows 1 argument
+void worker_thread_start(WorkerArgs_w const *args) {
+  int amount = args->worker_finish - args->worker_start;
+  double *minDist = new double[amount];
+  for (int m = 0; m < amount; m++) {
+    minDist[m] = 1e30;
+    args->args->clusterAssignments[m + args->worker_start] = -1;
+  }
+  for (int k = args->args->start; k < args->args->end; k++) {
+    for (int m = args->worker_start; m < args->worker_finish; m++) {
+      double d =
+          dist(&args->args->data[m * args->args->N],
+               &args->args->clusterCentroids[k * args->args->N], args->args->N);
+      if (d < minDist[m - args->worker_start]) {
+        minDist[m - args->worker_start] = d;
+        args->args->clusterAssignments[m] = k;
+      }
+    }
+  }
+}
+
 void computeAssignments(WorkerArgs *const args) {
-  double *minDist = new double[args->M];
+  // parallel
+  int num_threads = 8;
+  std::thread workers[num_threads];
+  WorkerArgs_w args_w[num_threads];
+  int work_per_thread = args->M / num_threads;
+  int worker_start = 0, worker_finish = work_per_thread;
+  for (int i = 0; i < num_threads; i++) {
+    // original args
+    args_w[i].args = args;
+    // related to work distribution
+    if (worker_finish >= args->M)
+      worker_finish = args->M;
+    args_w[i].worker_start = worker_start;
+    args_w[i].worker_finish = worker_finish;
+    worker_start += work_per_thread;
+    worker_finish += work_per_thread;
+  }
+  for (int i = 1; i < num_threads; i++) {
+    workers[i] = std::thread(worker_thread_start, &args_w[i]);
+  }
+  // start the work of thread 0 (main thread)
+  worker_thread_start(&args_w[0]);
+  // start the rest
+  for (int i = 1; i < num_threads; i++) {
+    workers[i].join();
+  }
+
+  // serial
+  /*double *minDist = new double[args->M];
 
   // Initialize arrays
-  for (int m =0; m < args->M; m++) {
+  for (int m = 0; m < args->M; m++) {
     minDist[m] = 1e30;
     args->clusterAssignments[m] = -1;
   }
@@ -84,8 +140,7 @@ void computeAssignments(WorkerArgs *const args) {
       }
     }
   }
-
-  free(minDist);
+  free(minDist);*/
 }
 
 /**
