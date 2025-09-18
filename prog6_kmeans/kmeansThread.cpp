@@ -218,8 +218,8 @@ void kMeansThread(double *data, double *clusterCentroids, int *clusterAssignment
     iter++;
 
     compute_assng += computeAssignments_time - startTime;
-    compute_centr += computeCentroids_time - startTime;
-    compute_cost += computeCost_time - startTime;
+    compute_centr += computeCentroids_time - computeAssignments_time;
+    compute_cost += computeCost_time - computeCentroids_time;
   }
   printf("[compute_assignment]:\t\t[%.3f] ms\n[compute_centroid]:\t\t[%.3f] "
          "ms\n[compute_cost]:\t\t        [%.3f] ms\n",
